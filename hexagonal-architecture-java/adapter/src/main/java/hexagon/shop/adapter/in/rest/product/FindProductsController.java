@@ -4,6 +4,7 @@ import static hexagon.shop.adapter.in.rest.common.ControllerCommons.clientErrorE
 
 import hexagon.shop.application.port.in.product.FindProductsUseCase;
 import hexagon.shop.model.product.Product;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -22,6 +23,7 @@ public class FindProductsController {
     this.findProductsUseCase = findProductsUseCase;
   }
 
+  @GET
   public List<ProductInListWebModel> findProducts(@QueryParam("query") final String query) {
     if (Objects.isNull(query))
       throw clientErrorException(Response.Status.BAD_REQUEST, "Missing 'query'");
