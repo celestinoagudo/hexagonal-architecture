@@ -35,4 +35,8 @@ public class Cart {
   public Money subTotal() {
     return lineItems.values().stream().map(CartLineItem::subTotal).reduce(Money::add).orElse(null);
   }
+
+  public void putProductIgnoringNotEnoughItemsInStock(final Product product, final int quantity) {
+    lineItems.put(product.id(), new CartLineItem(product, quantity));
+  }
 }
