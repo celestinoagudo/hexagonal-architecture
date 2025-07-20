@@ -6,11 +6,12 @@ import static java.util.Map.ofEntries;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
-final class EntityManagerFactoryCreator {
+public final class EntityManagerFactoryCreator {
   private EntityManagerFactoryCreator() {}
 
   public static EntityManagerFactory createMySqlEntityManagerFactory(
       final String jdbcUrl, final String user, final String password) {
+
     return Persistence.createEntityManagerFactory(
         "hexagon.shop.adapter.out.persistence.jpa",
         ofEntries(

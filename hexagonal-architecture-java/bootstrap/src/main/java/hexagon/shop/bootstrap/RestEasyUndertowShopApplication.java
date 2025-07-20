@@ -6,6 +6,9 @@ import hexagon.shop.adapter.in.rest.cart.GetCartController;
 import hexagon.shop.adapter.in.rest.product.FindProductsController;
 import hexagon.shop.adapter.out.persistence.inmemory.InMemoryCartRepository;
 import hexagon.shop.adapter.out.persistence.inmemory.InMemoryProductRepository;
+import hexagon.shop.adapter.out.persistence.jpa.EntityManagerFactoryCreator;
+import hexagon.shop.adapter.out.persistence.jpa.JpaCartRepository;
+import hexagon.shop.adapter.out.persistence.jpa.JpaProductRepository;
 import hexagon.shop.application.port.out.persistence.CartRepository;
 import hexagon.shop.application.port.out.persistence.ProductRepository;
 import hexagon.shop.application.service.cart.AddToCartService;
@@ -31,8 +34,15 @@ public class RestEasyUndertowShopApplication extends Application {
   }
 
   private void initializePersistenceAdapters() {
-    cartRepository = new InMemoryCartRepository();
-    productRepository = new InMemoryProductRepository();
+    var persistence = System.getProperty("persistence", "inmemory");
+    switch (persistence) {
+      case "inmemory" -> initializeInMemoryAdapters();
+      case "mysql" -> initializeSqlAdapters();
+      default ->
+          throw new IllegalArgumentException(
+              "Invalid 'persistence' property: '%s' (allowed: 'inmemory', 'mysql')"
+                  .formatted(persistence));
+    }
   }
 
   private AddToCartController addToCartController() {
@@ -53,5 +63,18 @@ public class RestEasyUndertowShopApplication extends Application {
   private FindProductsController findProductsController() {
     var findProductUseCase = new FindProductsService(productRepository);
     return new FindProductsController(findProductUseCase);
+  }
+
+  private void initializeInMemoryAdapters() {
+    cartRepository = new InMemoryCartRepository();
+    productRepository = new InMemoryProductRepository();
+  }
+
+  private void initializeSqlAdapters() {
+    var entityManagerFactory =
+        EntityManagerFactoryCreator.createMySqlEntityManagerFactory(
+            "jdbc:mysql://localhost:3306/shop", "root", "test");
+    cartRepository = new JpaCartRepository(entityManagerFactory);
+    productRepository = new JpaProductRepository(entityManagerFactory);
   }
 }
