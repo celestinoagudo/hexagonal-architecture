@@ -3,42 +3,37 @@ package hexagon.shop.adapter.out.persistence.jpa;
 import hexagon.shop.application.port.out.persistence.CartRepository;
 import hexagon.shop.model.cart.Cart;
 import hexagon.shop.model.customer.CustomerId;
-import jakarta.persistence.EntityManagerFactory;
-import java.util.Objects;
+import jakarta.transaction.Transactional;
 import java.util.Optional;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
+@Repository
+@ConditionalOnProperty(name = "persistence", havingValue = "mysql")
 public class JpaCartRepository implements CartRepository {
 
-  private final EntityManagerFactory entityManagerFactory;
+  private final JpaCartSpringDataRepository cartSpringDataRepository;
 
-  public JpaCartRepository(final EntityManagerFactory entityManagerFactory) {
-    this.entityManagerFactory = entityManagerFactory;
+  public JpaCartRepository(final JpaCartSpringDataRepository cartSpringDataRepository) {
+    this.cartSpringDataRepository = cartSpringDataRepository;
   }
 
+  @Transactional
   @Override
   public void save(final Cart cart) {
-    try (var entityManager = entityManagerFactory.createEntityManager()) {
-      entityManager.getTransaction().begin();
-      entityManager.merge(CartMapper.toJpaEntity(cart));
-      entityManager.getTransaction().commit();
-    }
+    cartSpringDataRepository.save(CartMapper.toJpaEntity(cart));
   }
 
   @Override
+  @Transactional
   public Optional<Cart> findByCustomerId(final CustomerId customerId) {
-    try (var entityManager = entityManagerFactory.createEntityManager()) {
-      var cartJpaEntity = entityManager.find(CartJpaEntity.class, customerId.value());
-      return CartMapper.toModelEntityOptional(cartJpaEntity);
-    }
+    var cartJpaEntity = cartSpringDataRepository.findById(customerId.value());
+    return cartJpaEntity.flatMap(CartMapper::toModelEntityOptional);
   }
 
   @Override
+  @Transactional
   public void deleteById(final CustomerId customerId) {
-    try (var entityManager = entityManagerFactory.createEntityManager()) {
-      entityManager.getTransaction().begin();
-      var cartJpaEntity = entityManager.find(CartJpaEntity.class, customerId.value());
-      if (Objects.nonNull(cartJpaEntity)) entityManager.remove(cartJpaEntity);
-      entityManager.getTransaction().commit();
-    }
+    cartSpringDataRepository.deleteById(customerId.value());
   }
 }

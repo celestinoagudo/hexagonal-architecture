@@ -7,12 +7,11 @@ import static hexagon.shop.adapter.in.rest.common.ProductIdParser.parseProductId
 import hexagon.shop.application.port.in.cart.AddToCartUseCase;
 import hexagon.shop.application.port.in.cart.ProductNotFoundException;
 import hexagon.shop.model.cart.NotEnoughItemsInStockException;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
-@Path("/carts")
-@Produces(MediaType.APPLICATION_JSON)
+@RestController
+@RequestMapping("/carts")
 public class AddToCartController {
   private final AddToCartUseCase addToCartUseCase;
 
@@ -20,23 +19,21 @@ public class AddToCartController {
     this.addToCartUseCase = addToCartUseCase;
   }
 
-  @POST
-  @Path("/{customerId}/line-items")
+  @PostMapping("/{customerId}/line-items")
   public CartWebModel addLineItem(
-      @PathParam("customerId") final String customerIdAsString,
-      @QueryParam("productId") final String productIdAsString,
-      @QueryParam("quantity") final int quantity) {
+      @PathVariable("customerId") final String customerIdAsString,
+      @RequestParam("productId") final String productIdAsString,
+      @RequestParam("quantity") final int quantity) {
     var customerId = parseCustomerId(customerIdAsString);
     var productId = parseProductId(productIdAsString);
     try {
       var cart = addToCartUseCase.addToCart(customerId, productId, quantity);
       return CartWebModel.fromDomainModel(cart);
     } catch (final ProductNotFoundException productNotFoundException) {
-      throw clientErrorException(
-          Response.Status.BAD_REQUEST, "The requested product does not exist");
+      throw clientErrorException(HttpStatus.BAD_REQUEST, "The requested product does not exist");
     } catch (final NotEnoughItemsInStockException notEnoughItemsInStockException) {
       throw clientErrorException(
-          Response.Status.BAD_REQUEST,
+          HttpStatus.BAD_REQUEST,
           "Only %d items in stock".formatted(notEnoughItemsInStockException.itemsInStock()));
     }
   }

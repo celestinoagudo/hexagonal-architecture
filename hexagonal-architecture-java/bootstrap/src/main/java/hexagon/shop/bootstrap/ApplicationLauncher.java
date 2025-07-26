@@ -1,22 +1,10 @@
 package hexagon.shop.bootstrap;
 
-import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
+import hexagon.shop.SpringAppConfiguration;
+import org.springframework.boot.SpringApplication;
 
 public class ApplicationLauncher {
-
-  private UndertowJaxrsServer applicationServer;
-
   public static void main(String[] args) {
-    new ApplicationLauncher().startOnDefaultPort();
-  }
-
-  private void startOnDefaultPort() {
-    applicationServer = new UndertowJaxrsServer();
-    startApplicationServer();
-  }
-
-  private void startApplicationServer() {
-    applicationServer.start();
-    applicationServer.deploy(RestEasyUndertowShopApplication.class);
+    SpringApplication.run(SpringAppConfiguration.class, args);
   }
 }

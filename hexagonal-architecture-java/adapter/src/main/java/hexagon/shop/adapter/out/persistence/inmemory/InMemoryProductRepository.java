@@ -10,7 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
+@Repository
+@ConditionalOnProperty(name = "persistence", havingValue = "inmemory", matchIfMissing = true)
 public class InMemoryProductRepository implements ProductRepository {
 
   private final Map<ProductId, Product> products = new ConcurrentHashMap<>();

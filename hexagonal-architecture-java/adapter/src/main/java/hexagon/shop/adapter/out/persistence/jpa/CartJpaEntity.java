@@ -2,15 +2,15 @@ package hexagon.shop.adapter.out.persistence.jpa;
 
 import jakarta.persistence.*;
 import java.util.List;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "Cart")
 @Getter
 @Setter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class CartJpaEntity {
 
   @Id private int customerId;

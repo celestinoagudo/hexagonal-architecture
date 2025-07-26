@@ -3,14 +3,13 @@ package hexagon.shop.adapter.in.rest.cart;
 import static hexagon.shop.adapter.in.rest.common.CustomerIdParser.parseCustomerId;
 
 import hexagon.shop.application.port.in.cart.GetCartUseCase;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Path("/carts")
-@Produces(MediaType.APPLICATION_JSON)
+@RestController
+@RequestMapping("/carts")
 public class GetCartController {
 
   private final GetCartUseCase getCartUseCase;
@@ -19,9 +18,8 @@ public class GetCartController {
     this.getCartUseCase = getCartUseCase;
   }
 
-  @GET
-  @Path("/{customerId}")
-  public CartWebModel getCart(@PathParam("customerId") final String customerIdAsString) {
+  @GetMapping("/{customerId}")
+  public CartWebModel getCart(@PathVariable("customerId") final String customerIdAsString) {
     var customerId = parseCustomerId(customerIdAsString);
     var cart = getCartUseCase.getCart(customerId);
     return CartWebModel.fromDomainModel(cart);

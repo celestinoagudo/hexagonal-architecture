@@ -1,18 +1,19 @@
 package hexagon.shop.adapter.in.rest.common;
 
-import jakarta.ws.rs.ClientErrorException;
-import jakarta.ws.rs.core.Response;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 public final class ControllerCommons {
   private ControllerCommons() {}
 
   public static ClientErrorException clientErrorException(
-      final Response.Status status, final String message) {
-    return new ClientErrorException(errorResponse(status, message));
+      final HttpStatus httpStatus, final String message) {
+    return new ClientErrorException(errorResponse(httpStatus, message));
   }
 
-  public static Response errorResponse(final Response.Status status, final String message) {
-    var errorEntity = new ErrorEntity(status.getStatusCode(), message);
-    return Response.status(status).entity(errorEntity).build();
+  public static ResponseEntity<ErrorEntity> errorResponse(
+      final HttpStatus httpStatus, final String message) {
+    var errorEntity = new ErrorEntity(httpStatus.value(), message);
+    return ResponseEntity.status(httpStatus.value()).body(errorEntity);
   }
 }

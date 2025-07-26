@@ -4,16 +4,20 @@ import hexagon.shop.adapter.out.persistence.DemoProducts;
 import hexagon.shop.application.port.out.persistence.ProductRepository;
 import hexagon.shop.model.product.Product;
 import hexagon.shop.model.product.ProductId;
-import jakarta.persistence.EntityManagerFactory;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
+@Repository
+@ConditionalOnProperty(name = "persistence", havingValue = "mysql")
 public class JpaProductRepository implements ProductRepository {
 
-  private final EntityManagerFactory entityManagerFactory;
+  private final JpaProductSpringDataRepository productSpringDataRepository;
 
-  public JpaProductRepository(final EntityManagerFactory entityManagerFactory) {
-    this.entityManagerFactory = entityManagerFactory;
+  public JpaProductRepository(final JpaProductSpringDataRepository productSpringDataRepository) {
+    this.productSpringDataRepository = productSpringDataRepository;
     createDemoProducts();
   }
 
@@ -22,32 +26,24 @@ public class JpaProductRepository implements ProductRepository {
   }
 
   @Override
+  @Transactional
   public List<Product> findByNameOrDescription(final String queryString) {
-    try (var entityManager = entityManagerFactory.createEntityManager()) {
-      var query =
-          entityManager
-              .createQuery(
-                  "from ProductJpaEntity where name like :query or description like :query",
-                  ProductJpaEntity.class)
-              .setParameter("query", "%".concat(queryString).concat("%"));
-      return ProductMapper.toModelEntities(query.getResultList());
-    }
+    var products =
+        productSpringDataRepository.findByNameOrDescriptionLike(
+            "%".concat(queryString).concat("%"));
+    return ProductMapper.toModelEntities(products);
   }
 
   @Override
+  @Transactional
   public Optional<Product> findById(final ProductId productId) {
-    try (var entityManager = entityManagerFactory.createEntityManager()) {
-      var jpaEntity = entityManager.find(ProductJpaEntity.class, productId.value());
-      return ProductMapper.toModelEntityOptional(jpaEntity);
-    }
+    var productJpaEntity = productSpringDataRepository.findById(productId.value());
+    return productJpaEntity.map(ProductMapper::toModelEntity);
   }
 
   @Override
+  @Transactional
   public void save(final Product product) {
-    try (var entityManager = entityManagerFactory.createEntityManager()) {
-      entityManager.getTransaction().begin();
-      entityManager.merge(ProductMapper.toJpaEntity(product));
-      entityManager.getTransaction().commit();
-    }
+    productSpringDataRepository.save(ProductMapper.toJpaEntity(product));
   }
 }
