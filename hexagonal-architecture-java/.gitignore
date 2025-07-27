@@ -36,3 +36,5 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+bootstrap/src/main/resources/application-mysql.properties
